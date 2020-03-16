@@ -64,4 +64,34 @@ export class ChatService {
     }
   }
 
+  joinUsers(chat$: Observable<any>) {
+    let chat;
+    const joinKeys = {};
+
+    return chat$.pipe(
+      switchMap(c => {
+        // Unique User IDs
+        chat = c;
+        // TSLINT WARNING >> v implied as "any"
+        const uids = Array.from(new Set(c.messages.map(v => v.uid)));
+
+        // Firestore User Doc Reads
+        const userDocs = uids.map(u =>
+          this.afs.doc(`users/${u}`).valueChanges()
+        );
+
+        return userDocs.length ? combineLatest(userDocs) : of([]);
+      }),
+      map(arr => {
+        arr.forEach(v => (joinKeys[(<any>v).uid] = v));
+        chat.messages = chat.messages.map(v => {
+          // TSLINT WARNING >> v implied as "any"
+          return { ...v, user: joinKeys[v.uid] };
+        });
+
+        return chat;
+      })
+    );
+  }
+
 }
