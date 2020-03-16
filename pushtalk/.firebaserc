@@ -1,0 +1,11 @@
+{
+  "targets": {
+    "pushtalkapi": {
+      "hosting": {
+        "pushtalk": [
+          "pushtalkapi"
+        ]
+      }
+    }
+  }
+}

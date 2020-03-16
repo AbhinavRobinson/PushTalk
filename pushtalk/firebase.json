@@ -1,0 +1,19 @@
+{
+  "hosting": [
+    {
+      "target": "pushtalk",
+      "public": "dist/pushtalk",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    }
+  ]
+}
