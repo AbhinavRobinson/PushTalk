@@ -23,13 +23,28 @@ export class ChatService {
       .snapshotChanges()
       .pipe(
         map(doc => {
-          // added "as string" and "as object" due to :
-          // Error: [ts] Spread types may only be created from object types.
-          // GitHub issue about it: Microsoft/TypeScript#10727.
-          // StackOverFlow Link >> https://stackoverflow.com/questions/51189388/typescript-spread-types-may-only-be-created-from-object-types/51193091
-          return { id: doc.payload.id as string, ...doc.payload.data() as object };
+          return { id: doc.payload.id as string, ...doc.payload.data() as object};
         })
       );
+  }
+
+  getUserChats() {
+    return this.auth.user$.pipe(
+      switchMap(user => {
+        return this.afs
+          .collection('chats', ref => ref.where('uid', '==', user.uid))
+          .snapshotChanges()
+          .pipe(
+            map(actions => {
+              return actions.map(a => {
+                const data: Object = a.payload.doc.data();
+                const id = a.payload.doc.id;
+                return { id, ...data };
+              });
+            })
+          );
+      })
+    );
   }
 
   async create() {
@@ -64,6 +79,20 @@ export class ChatService {
     }
   }
 
+  async deleteMessage(chat, msg) {
+    const { uid } = await this.auth.getUser();
+
+    const ref = this.afs.collection('chats').doc(chat.id);
+    console.log(msg);
+    if (chat.uid === uid || msg.uid === uid) {
+      // Allowed to delete
+      delete msg.user;
+      return ref.update({
+        messages: firestore.FieldValue.arrayRemove(msg)
+      });
+    }
+  }
+
   joinUsers(chat$: Observable<any>) {
     let chat;
     const joinKeys = {};
@@ -72,7 +101,6 @@ export class ChatService {
       switchMap(c => {
         // Unique User IDs
         chat = c;
-        // TSLINT WARNING >> v implied as "any"
         const uids = Array.from(new Set(c.messages.map(v => v.uid)));
 
         // Firestore User Doc Reads
@@ -85,7 +113,6 @@ export class ChatService {
       map(arr => {
         arr.forEach(v => (joinKeys[(<any>v).uid] = v));
         chat.messages = chat.messages.map(v => {
-          // TSLINT WARNING >> v implied as "any"
           return { ...v, user: joinKeys[v.uid] };
         });
 
@@ -93,5 +120,4 @@ export class ChatService {
       })
     );
   }
-
 }
