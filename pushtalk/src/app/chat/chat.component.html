@@ -2,7 +2,7 @@
 
     <div class="top">
       <p>
-          https://firestore-megachat.firebaseapp.com/chats/{{ chat.id }}
+          https://pushtalkapi.firebaseapp.com/chats/{{ chat.id }}
       </p>
     </div>
 
@@ -14,7 +14,7 @@
 
         <div class="user">
           <img [src]="msg.user?.photoURL">
-          <div>{{ msg.user?.displayName }}</span></div>
+          <div>{{ msg.user.displayName }}</div>
         </div>
 
         <p>{{ msg.content }}</p>
